@@ -1,0 +1,41 @@
+on:
+  workflow_dispatch:
+  schedule:
+    # 4:20 on wednesdays, my dudes
+    - cron: '20 4 * * 3'
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Nix targets
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@main
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: true
+      - name: build prerelease detsys nix
+        run: nix build github:DeterminateSystems/nix-src/flake-schemas
+      - name: flake-schemas show
+        run: nix run github:DeterminateSystems/nix-src/flake-schemas --   flake show . --all-systems
+      - name: flake-schemas check
+        run: nix run github:DeterminateSystems/nix-src/flake-schemas --   flake check . --all-systems
+      - name: tests
+        run: |
+          (nix run github:DeterminateSystems/nix-src/flake-schemas -- flake check --impure --override-input dogrules "git+file://$(pwd)" ./test/fail && echo "BAD: fail passed" && exit 1) || (echo "GOOD: fail failed as desired")
+          (nix run github:DeterminateSystems/nix-src/flake-schemas -- flake check --impure --override-input dogrules "git+file://$(pwd)" ./test/good && echo "GOOD: good passed") || (echo "BAD: good failed" && exit 1)
+      - name: Push to FlakeHub
+        uses: DeterminateSystems/flakehub-push@main
+        with:
+          visibility: public
+          rolling: true
