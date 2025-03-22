@@ -24,6 +24,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
         with:
           determinate: true
+      - uses: DeterminateSystems/flakehub-cache-action@main
       - name: build prerelease detsys nix
         run: nix build .#nix
       - name: flake-schemas show
