@@ -1,0 +1,17 @@
+#+title: dogrules
+
+playing around with [[https://github.com/DeterminateSystems/flake-schemas][flake-schemas]].
+
+* Using them:
+
+Add =dogrules= to your =flake.nix=: [[https://img.shields.io/endpoint?url=https://flakehub.com/f/sielicki/dogrules/badge]]
+
+#+begin_src nix
+{
+  inputs.dogrules.url = "https://flakehub.com/f/sielicki/dogrules/*";
+
+  outputs = { self, dogrules, ... }: {
+    # Use in your outputs
+  };
+}
+#+end_src
